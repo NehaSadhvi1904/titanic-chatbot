@@ -52,6 +52,34 @@ def query_titanic(question: str):
         embark_counts = df["embark_town"].value_counts().to_dict()
         return {"response": f"Number of passengers per port: {embark_counts}"}
 
+    elif "survival rate" in question:
+        survival_rate = (df["survived"].mean()) * 100
+        return {"response": f"The overall survival rate was {survival_rate:.2f}%."}
+
+    elif "survival rate for each class" in question:
+        class_survival = df.groupby("pclass")["survived"].mean() * 100
+        return {"response": f"Survival rate per class: {class_survival.to_dict()}"}
+
+    elif "percentage of males and females survived" in question:
+        gender_survival = df.groupby("sex")["survived"].mean() * 100
+        return {"response": f"Survival rate by gender: {gender_survival.to_dict()}"}
+
+    elif "boxplot of fares" in question:
+        plt.figure(figsize=(8, 6))
+        sns.boxplot(x=df["fare"])
+        plt.title("Boxplot of Ticket Fares")
+        img = BytesIO()
+        plt.savefig(img, format='png')
+        img.seek(0)
+        base64_img = base64.b64encode(img.getvalue()).decode()
+        return {"response": "Here is the boxplot of ticket fares.", "image": base64_img}
+
+    elif "how many passengers were in each age group" in question:
+        age_bins = [0, 10, 20, 30, 40, 50, 60, 70, 80]
+        df["age_group"] = pd.cut(df["age"], bins=age_bins, labels=["0-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80"])
+        age_distribution = df["age_group"].value_counts().to_dict()
+        return {"response": f"Passenger count by age group: {age_distribution}"}
+
     return {"response": "I couldn't understand your query. Please try again."}
 
 # Start FastAPI in a separate thread
